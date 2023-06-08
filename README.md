@@ -8,12 +8,16 @@ This project was created for the convenience of RGBT Tracking researchers. By ut
 - Precision plot and other plot are available.
 - Supports GTOT, RGBT210, RGBT234, LasHeR datasets
 
+> LasHeR will have an error of less than 0.01, it is recommended to retest it on the original toolkit
+
 # Evaluate and Visualize
 
 We provide the ground truth file for RGBT234, so you can directly call it.
 
 ```python
-from dataset import rgbt234
+from dataset import RGBT234
+
+rgbt234 = RGBT234()
 
 # Register your tracker
 rgbt234(
@@ -50,6 +54,6 @@ rgbt234.draw_plot(metric_fun=rgbt234.MSR)
 
 Any operation requires only one line of code.
 
-![image0](RGBT234_MSR.png)
+![image0](RGBT234_MSR_radar.png)
 
 ![image1](RGBT234_MSR_plot.png)

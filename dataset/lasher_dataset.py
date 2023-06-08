@@ -2,11 +2,12 @@
 from dataset.basedataset import BaseRGBTDataet
 from utils import *
 import os
-from metrics import PR,SR
+from metrics import PR,SR,NPR
 
 class LasHeR(BaseRGBTDataet):
     """
-    
+    Publication: `LasHeR: A Large-scale High-diversity Benchmark for RGBT Tracking`
+    [Download Dataset.](https://github.com/mmic-lcl/Datasets-and-benchmark-code)
     """
     def __init__(self, gt_path='./gt_file/LasHeR/lasher_gt/',
                  seq_name_path="./gt_file/LasHeR/lashertest.txt") -> None:
@@ -16,7 +17,7 @@ class LasHeR(BaseRGBTDataet):
         self.name = 'LasHeR_test'
         self.PR_fun = PR()
         self.SR_fun = SR()
-        self.NPR_fun = None
+        self.NPR_fun = NPR()
 
         # Challenge attributes
         self._attr_list = ('NO', 'PO', 'TO', 'HO', 'MB', 
@@ -84,6 +85,20 @@ class LasHeR(BaseRGBTDataet):
                 res[k] = self.PR_fun(self, v, seqs)
             return res
 
+    def NPR(self, tracker_name=None, seqs=None):
+        """
+        """
+        if seqs==None:
+            seqs = self.seqs_name
+
+        if tracker_name!=None:
+            return self.NPR_fun(self, self.trackers[tracker_name], seqs)
+        else:
+            res = {}
+            for k,v in self.trackers.items():
+                res[k] = self.NPR_fun(self, v, seqs)
+            return res
+
 
     def SR(self, tracker_name=None, seqs=None):
         """
@@ -93,10 +108,6 @@ class LasHeR(BaseRGBTDataet):
             Default is None, evaluate all registered trackers.
         [in] seqs - list
             Sequence to be evaluated, default is all.
-        
-        Returns
-        -------
-        Same as MPR.
         """
         if seqs==None:
             seqs = self.seqs_name
@@ -122,12 +133,16 @@ class LasHeR(BaseRGBTDataet):
     
 
     def draw_plot(self, metric_fun, filename=None, title=None, seqs=None):
-        assert metric_fun==self.SR or metric_fun==self.PR
+        assert metric_fun in [self.NPR, self.PR, self.SR]
         if filename==None:
             filename = self.name
             if metric_fun==self.PR:
                 filename+="_PR"
                 axis = self.PR_fun.thr
+                loc = "lower right"
+            elif metric_fun==self.NPR:
+                filename+="_NPR"
+                axis = self.NPR_fun.thr
                 loc = "lower right"
             elif metric_fun==self.SR:
                 filename+="_SR"
@@ -138,6 +153,8 @@ class LasHeR(BaseRGBTDataet):
         if title==None:
             if metric_fun==self.PR:
                 title="Precision Plot"
+            elif metric_fun==self.NPR:
+                title="Normalized Precision Plot"
             elif metric_fun==self.SR:
                 title="Success Plot"
 

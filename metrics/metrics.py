@@ -82,9 +82,50 @@ class MSR(Metric):
 
 
 
+class NPR(Metric):
+    """
+    Normalized Precision Rate.
+    """
+    def __init__(self, thr=np.linspace(0, 0.5, 51)) -> None:
+        super().__init__()
+        self.thr = thr
+
+
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
+        pr=[]
+        for seq_name in seqs:
+            try:
+                gt = dataset[seq_name]
+                serial = result[seq_name]
+                serial[0] = gt[0]       # ignore the first frame
+            except:
+                gt = dataset[seq_name]['visible']
+                serial = result[seq_name]
+                serial[0] = gt[0]       # ignore the first frame
+            # cut off tracking result
+            serial = serial[:len(gt)]   
+            # handle the invailded tracking result
+            for i in range(len(gt)-1, -1, -1):
+                if (gt[i][2]-gt[i][0])<=0 or (gt[i][3]-gt[i][1])<=0:
+                    del gt[i]
+                    del serial[i]
+            res = np.array(serial_process(CLE, serial, gt, need_normalize=True))
+
+            pr_cell = []
+            for i in self.thr:
+                pr_cell.append(np.sum(res<=i)/len(res))
+            pr.append(pr_cell)
+        pr = np.array(pr)
+        pr_val = pr.mean(axis=0)[20]
+        return pr_val, pr
+
+
+
+
 
 class PR(Metric):
     """
+    Precision Rate.
     """
     def __init__(self, thr=np.linspace(0, 50, 51)) -> None:
         super().__init__()
@@ -102,7 +143,13 @@ class PR(Metric):
                 gt = dataset[seq_name]['visible']
                 serial = result[seq_name]
                 serial[0] = gt[0]       # ignore the first frame
-            serial = serial[:len(gt)]   # cut off tracking result
+            # cut off tracking result
+            serial = serial[:len(gt)]   
+            # handle the invailded tracking result
+            for i in range(len(gt)-1, -1, -1):
+                if (gt[i][2]-gt[i][0])<=0 or (gt[i][3]-gt[i][1])<=0:
+                    del gt[i]
+                    del serial[i]
             res = np.array(serial_process(CLE, serial, gt))
 
             pr_cell = []
@@ -118,6 +165,9 @@ class PR(Metric):
 
 
 class SR(Metric):
+    """
+    Success Rate.
+    """
     def __init__(self, thr=np.linspace(0, 1, 21)) -> None:
         super().__init__()
         self.thr = thr
@@ -135,7 +185,13 @@ class SR(Metric):
                 gt = dataset[seq_name]['visible']
                 serial = result[seq_name]
                 serial[0] = gt[0]       # ignore the first frame
-            serial = serial[:len(gt)]   # cut off tracking result
+            # cut off tracking result
+            serial = serial[:len(gt)]   
+            # handle the invailded tracking result
+            for i in range(len(gt)-1, -1, -1):
+                if (gt[i][2]-gt[i][0])<=0 or (gt[i][3]-gt[i][1])<=0 :
+                    del gt[i]
+                    del serial[i]
             res = np.array(serial_process(IoU, serial, gt))
 
             sr_cell = []

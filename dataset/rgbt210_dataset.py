@@ -88,7 +88,7 @@ class RGBT210(BaseRGBTDataet):
         
         Returns
         -------
-        Same as MPR.
+        Same as PR.
         """
         if seqs==None:
             seqs = self.seqs_name

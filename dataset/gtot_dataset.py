@@ -2,47 +2,34 @@
 from dataset.basedataset import BaseRGBTDataet
 from utils import *
 import os
-from metrics import PR,SR
+from metrics import MPR,MSR
 
 class GTOT(BaseRGBTDataet):
     """
-    Publication: `Learning collaborative sparse representation for grayscale-thermal tracking`\r
-    IEEE Transactions on Image Processing
+    Publication: `Learning collaborative sparse representation for grayscale-thermal tracking` 2016\\
+    IEEE Transactions on Image Processing \\
     [Download Dataset.](https://github.com/mmic-lcl/Datasets-and-benchmark-code)
+
+    NOTE: this is not support attribute test. [Just here, not GTOT]
     """
-    def __init__(self, gt_path,
+    def __init__(self, gt_path="./gt_file/GTOT/groundtruth/",
                  seq_name_path="./gt_file/GTOT/SequencesName.txt") -> None:
         seqs = load_text(seq_name_path, dtype=str)
-        super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh', v_name='groundTruth_v.txt', i_name='groundTruth_i.txt')
+        super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltrb', v_name='groundTruth_v.txt', i_name='groundTruth_i.txt')
+        # super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh', v_name='init.txt', i_name='init.txt')
 
         self.name = 'GTOT'
-        self.MPR_fun = PR()
-        self.MSR_fun = SR()
+        self.MPR_fun = MPR(thr=np.linspace(0, 25, 51))
+        self.MSR_fun = MSR(thr=np.linspace(0, 1, 51))
 
         # Challenge attributes
-        self._attr_list = ("BC","CM","DEF","FM","HO","LI","LR","MB","NO","TC","PO","SC")
-        self.BC = self.choose_serial_by_att("BC")
-        self.CM = self.choose_serial_by_att("CM")
-        self.DEF = self.choose_serial_by_att("DEF")
-        self.FM = self.choose_serial_by_att("FM")
-        self.HO = self.choose_serial_by_att("HO")
-        self.LI = self.choose_serial_by_att("LI")
-        self.LR = self.choose_serial_by_att("LR")
-        self.MB = self.choose_serial_by_att("MB")
-        self.NO = self.choose_serial_by_att("NO")
-        self.TC = self.choose_serial_by_att("TC")
-        self.PO = self.choose_serial_by_att("PO")
-        self.SC = self.choose_serial_by_att("SC")
+        self._attr_list = (None)
 
     def get_attr_list(self):
         return self._attr_list
 
     def choose_serial_by_att(self, attr):
-        if attr==self.ALL:
-            return self.seqs_name
-        else:
-            p = load_text(os.path.join(self.gt_path, '..', 'attr_txt', attr+'.txt'))
-            return [seq_name for i,seq_name in zip(p, self.seqs_name) if i]
+        return None
 
     def MPR(self, tracker_name=None, seqs=None):
         """
@@ -66,7 +53,8 @@ class GTOT(BaseRGBTDataet):
         else:
             res = {}
             for k,v in self.trackers.items():
-                res[k] = self.MPR_fun(self, v, seqs)
+                res[k] = list(self.MPR_fun(self, v, seqs))
+                res[k][0] = res[k][1].mean(axis=0)[10]
             return res
 
 
@@ -100,3 +88,29 @@ class GTOT(BaseRGBTDataet):
             for k,v in self.trackers.items():
                 res[k] = self.MSR_fun(self, v, seqs)
             return res
+
+    def draw_plot(self, metric_fun, filename=None, title=None, seqs=None):
+        assert metric_fun==self.MSR or metric_fun==self.MPR
+        if filename==None:
+            filename = self.name
+            if metric_fun==self.MPR:
+                filename+="_MPR"
+                axis = self.MPR_fun.thr
+                loc = "lower right"
+            elif metric_fun==self.MSR:
+                filename+="_MSR"
+                axis = self.MSR_fun.thr
+                loc = "lower left"
+            filename+="_plot.png"
+
+        if title==None:
+            if metric_fun==self.MPR:
+                title="Precision Plot"
+            elif metric_fun==self.MSR:
+                title="Success Plot"
+
+        return super().draw_plot(axis=axis, 
+                                 metric_fun=metric_fun, 
+                                 filename=filename, 
+                                 title=title, 
+                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc)

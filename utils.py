@@ -21,22 +21,19 @@ def load_text_numpy(path, delimiter=' ', dtype=np.float32):
 
 
 def ltwh_2_ltrb(rect):
-    rect[2] += rect[0]
-    rect[3] += rect[1]
-    return rect
-
-def lbwh_2_ltrb(rect):
-    rect[1]-=rect[3]
-    rect[2]+=rect[0]
-    rect[3]+=rect[1]
+    rect[2] = rect[2] + rect[0]
+    rect[3] = rect[3] + rect[1]
     return rect
 
 def ltrb_2_ltwh(rect):
-    rect[2] -= rect[0]
-    rect[3] -= rect[1]
+    rect[2] = rect[2] - rect[0]
+    rect[3] = rect[3] - rect[1]
     return rect
 
 def xywh_2_ltrb(rect):
+    """
+    (cx, cy, w, h) -> (left, top, right, bottom)
+    """
     return [rect[0]-rect[2]/2, rect[1]-rect[3]/2, rect[0]+rect[2]/2, rect[1]+rect[3]/2]
 
 def corner_2_ltrb(rect):
@@ -53,23 +50,29 @@ def bbox_type_trans(bbox_type_src, bbox_type_new):
         return lambda x:x
     
 
-def serial_process(fun, *serial):
+
+def serial_process(fun, *serial, **dict):
     res = []
     if len(serial)==1:
         for item in zip(*serial):
             if isinstance(item, tuple):
                 item = item[0]
-            res.append(fun(item))
+            res.append(fun(item, **dict))
     if len(serial)==2:
         for item1, item2 in zip(*serial):
             # if isinstance(item1, tuple):
             #     item1 = item1[0];item2 = item2[0]
-            res.append(fun(item1, item2))
+            res.append(fun(item1, item2, **dict))
     return res
 
 
-def CLE(rect1, rect2):
+def normalize(cx, cy, gt_w, gt_h):
+    return cx/gt_w, cy/gt_h
+
+
+def CLE(rect1, rect2, need_normalize=False):
     """ caculate center location error
+    NOTE: Default rect2 is groundtruth
     Args:
         rect1: (x1, y1, x2, y2)
         rect2: (x1, y1, x2, y2)
@@ -78,6 +81,9 @@ def CLE(rect1, rect2):
     """
     cp1 = [(rect1[2]+rect1[0])/2., (rect1[3]+rect1[1])/2.]
     cp2 = [(rect2[2]+rect2[0])/2., (rect2[3]+rect2[1])/2.]
+    if need_normalize:
+        cp1 = normalize(cp1[0], cp1[1], rect2[2]-rect2[0]+1, rect2[3]-rect2[1]+1)
+        cp2 = normalize(cp2[0], cp2[1], rect2[2]-rect2[0]+1, rect2[3]-rect2[1]+1)
     d = ((cp1[0]-cp2[0])**2 + (cp1[1]-cp2[1])**2)**0.5
     return d
 
