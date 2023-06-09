@@ -14,7 +14,6 @@ rgbt210(
 sr_dict = rgbt210.SR()
 print(sr_dict["SOWP"][0])
 
-
 pr_dict = rgbt210.PR()
 print(pr_dict["SOWP"][0])
 

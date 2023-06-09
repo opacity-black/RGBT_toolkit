@@ -29,11 +29,11 @@ print(pr_dict["JMMAC"][0])
 
 # Evaluate single tracker
 apf_sr,_ = rgbt234.MSR("APFNet")
-print(apf_sr)
+print("APFNet MSR: \t", apf_sr)
 tf_sr,_ = rgbt234.MSR("TFNet")
-print(tf_sr)
+print("TFNet MSR: \t", tf_sr)
 jmmac_sr,_ = rgbt234.MSR("JMMAC")
-print(jmmac_sr)
+print("JMMAC MSR: \t", jmmac_sr)
 
 # Evaluate single challenge
 pr_tc_dict = rgbt234.MPR(seqs=rgbt234.TC)
