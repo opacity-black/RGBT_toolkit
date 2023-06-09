@@ -8,8 +8,6 @@ This project was created for the convenience of RGBT Tracking researchers. By ut
 - Precision plot and other plot are available.
 - Supports GTOT, RGBT210, RGBT234, LasHeR datasets
 
-> LasHeR will have an error of less than 0.01, it is recommended to retest it on the original toolkit
-
 # Evaluate and Visualize
 
 We provide the ground truth file for RGBT234, so you can directly call it.

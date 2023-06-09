@@ -2,7 +2,7 @@
 from dataset.basedataset import BaseRGBTDataet
 from utils import *
 import os
-from metrics import PR,SR,NPR
+from metrics import PR_LasHeR,SR_LasHeR,NPR
 
 class LasHeR(BaseRGBTDataet):
     """
@@ -15,8 +15,8 @@ class LasHeR(BaseRGBTDataet):
         super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh')
 
         self.name = 'LasHeR_test'
-        self.PR_fun = PR()
-        self.SR_fun = SR()
+        self.PR_fun = PR_LasHeR()
+        self.SR_fun = SR_LasHeR()
         self.NPR_fun = NPR()
 
         # Challenge attributes

@@ -3,7 +3,6 @@ from dataset import LasHeR
 lasher = LasHeR()
 
 """
-NOTE: LasHeR will currently have an offset of less than 0.01
 LasHeR have 3 benchmarks: PR, NPR, SR
 """
 
@@ -25,6 +24,10 @@ print(pr_dict["mfDiMP"][0])
 npr_dict = lasher.NPR()
 print(npr_dict["APFNet"][0])
 print(npr_dict["mfDiMP"][0])
+
+sr_dict = lasher.SR()
+print(sr_dict["APFNet"][0])
+print(sr_dict["mfDiMP"][0])
 
 lasher.draw_plot(metric_fun=lasher.PR)
 lasher.draw_plot(metric_fun=lasher.NPR)

@@ -30,9 +30,9 @@ class TrackerResult:
     def __init__(self, tracker_name, path:str, seqs:list, prefix:str, bbox_type:str) -> None:
         self.tracker_name = tracker_name
         self.seqs_name = seqs
-        self.bbox_transfun = bbox_type_trans(bbox_type, 'ltrb')
+        self.bbox_transfun = bbox_type_trans(bbox_type, 'ltwh')
         self.seqs_result = initial_result_file(path, seqs, self.bbox_transfun, prefix)
-        self.bbox_type = 'ltrb'
+        self.bbox_type = 'ltwh'
 
     def __getitem__(self, index):
         if isinstance(index, int):
@@ -65,8 +65,8 @@ class BaseRGBTDataet:
         """
         self.gt_path = gt_path
 
-        self.bbox_transfun = bbox_type_trans(bbox_type, 'ltrb')
-        self.bbox_type = 'ltrb'
+        self.bbox_transfun = bbox_type_trans(bbox_type, 'ltwh')
+        self.bbox_type = 'ltwh'
 
         self.seqs_name = seqs
         self.ALL = tuple(self.seqs_name)

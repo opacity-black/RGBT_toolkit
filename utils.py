@@ -21,14 +21,10 @@ def load_text_numpy(path, delimiter=' ', dtype=np.float32):
 
 
 def ltwh_2_ltrb(rect):
-    rect[2] = rect[2] + rect[0]
-    rect[3] = rect[3] + rect[1]
-    return rect
+    return [rect[0], rect[1], rect[2]+rect[0]-1, rect[3]+rect[1]-1]
 
 def ltrb_2_ltwh(rect):
-    rect[2] = rect[2] - rect[0]
-    rect[3] = rect[3] - rect[1]
-    return rect
+    return [rect[0], rect[1], rect[2]-rect[0]+1, rect[3]-rect[1]+1]
 
 def xywh_2_ltrb(rect):
     """
@@ -37,10 +33,10 @@ def xywh_2_ltrb(rect):
     return [rect[0]-rect[2]/2, rect[1]-rect[3]/2, rect[0]+rect[2]/2, rect[1]+rect[3]/2]
 
 def corner_2_ltrb(rect):
-    return [rect[0], rect[1], rect[2], rect[5]]
+    return [rect[0], rect[1], rect[-2-2], rect[-1-2]]
 
 def corner_2_ltwh(rect):
-    return [rect[0], rect[1], rect[2]-rect[0], rect[5]-rect[1]]
+    return [rect[0], rect[1], rect[2]-rect[0]+1, rect[5]-rect[1]+1]
 
 
 def bbox_type_trans(bbox_type_src, bbox_type_new):
@@ -66,24 +62,24 @@ def serial_process(fun, *serial, **dict):
     return res
 
 
-def normalize(cx, cy, gt_w, gt_h):
-    return cx/gt_w, cy/gt_h
+def normalize(cx, cy, gt_w, gt_h, eps=1e-8):
+    return cx/(gt_w+eps), cy/(gt_h+eps)
 
 
 def CLE(rect1, rect2, need_normalize=False):
     """ caculate center location error
     NOTE: Default rect2 is groundtruth
     Args:
-        rect1: (x1, y1, x2, y2)
-        rect2: (x1, y1, x2, y2)
+        rect1: (l, t, w, h)
+        rect2: (l, t, w, h)
     Returns:
         center location error
     """
-    cp1 = [(rect1[2]+rect1[0])/2., (rect1[3]+rect1[1])/2.]
-    cp2 = [(rect2[2]+rect2[0])/2., (rect2[3]+rect2[1])/2.]
+    cp1 = [(rect1[2]-1)/2.+rect1[0], (rect1[3]-1)/2.+rect1[1]]
+    cp2 = [(rect2[2]-1)/2.+rect2[0], (rect2[3]-1)/2.+rect2[1]]
     if need_normalize:
-        cp1 = normalize(cp1[0], cp1[1], rect2[2]-rect2[0]+1, rect2[3]-rect2[1]+1)
-        cp2 = normalize(cp2[0], cp2[1], rect2[2]-rect2[0]+1, rect2[3]-rect2[1]+1)
+        cp1 = normalize(cp1[0], cp1[1], rect2[2], rect2[3])
+        cp2 = normalize(cp2[0], cp2[1], rect2[2], rect2[3])
     d = ((cp1[0]-cp2[0])**2 + (cp1[1]-cp2[1])**2)**0.5
     return d
 
@@ -97,19 +93,19 @@ def IoU(rect1, rect2):
         iou
     """
     # overlap
-    x1, y1, x2, y2 = rect1[0], rect1[1], rect1[2], rect1[3]
-    tx1, ty1, tx2, ty2 = rect2[0], rect2[1], rect2[2], rect2[3]
+    x1, y1, x2, y2 = ltwh_2_ltrb(rect1)
+    tx1, ty1, tx2, ty2 = ltwh_2_ltrb(rect2)
 
     xx1 = np.maximum(tx1, x1)
     yy1 = np.maximum(ty1, y1)
     xx2 = np.minimum(tx2, x2)
     yy2 = np.minimum(ty2, y2)
 
-    ww = np.maximum(0, xx2 - xx1)
-    hh = np.maximum(0, yy2 - yy1)
+    ww = np.maximum(0, xx2 - xx1 +1)
+    hh = np.maximum(0, yy2 - yy1 +1)
 
-    area = (x2-x1) * (y2-y1)
-    target_a = (tx2-tx1) * (ty2 - ty1)
+    area = rect1[-1]*rect1[-2]
+    target_a = rect2[-1]*rect2[-2]
     inter = ww * hh
     iou = inter / (area + target_a - inter)
     return iou
