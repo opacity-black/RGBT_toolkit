@@ -16,7 +16,7 @@ This project was created for the convenience of RGBT Tracking researchers. By ut
 We provide the ground truth file, so you can directly call it.
 
 ```python
-from dataset import RGBT234
+from rgbt import RGBT234
 
 rgbt234 = RGBT234()
 
@@ -66,3 +66,25 @@ Any operation requires only one line of code.
 经过仔细比对，发现这些差异并不会导致相对性能的变化。为了与历史跟踪器进行公平比较，我们对于这些差异做了兼容。
 
 这使得在测试GTOT时，需要在测试前额外调用`RGBT_start()`。
+
+```python
+from rgbt import GTOT
+from rgbt.utils import RGBT_start,RGBT_end
+
+RGBT_start()
+gtot = GTOT()
+
+# Register your tracker
+gtot(
+    tracker_name="APFNet",
+    result_path="./result/GTOT/APFNet", 
+    bbox_type="corner",
+    prefix="")
+
+pr_dict = gtot.MPR()
+
+gtot.draw_plot(metric_fun=gtot.MPR)
+gtot.draw_plot(metric_fun=gtot.MSR)
+
+RGBT_end()
+```
