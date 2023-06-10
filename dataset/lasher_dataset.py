@@ -140,26 +140,33 @@ class LasHeR(BaseRGBTDataet):
                 filename+="_PR"
                 axis = self.PR_fun.thr
                 loc = "lower right"
+                x_label = "Location error threshold"
+                y_label = "Precision"
             elif metric_fun==self.NPR:
                 filename+="_NPR"
                 axis = self.NPR_fun.thr
                 loc = "lower right"
+                x_label = "Normalized Location error threshold"
+                y_label = "Normalized Precision"
             elif metric_fun==self.SR:
                 filename+="_SR"
                 axis = self.SR_fun.thr
                 loc = "lower left"
+                x_label = "Overlap threshold"
+                y_label = "Success Rate"
             filename+="_plot.png"
 
         if title==None:
             if metric_fun==self.PR:
-                title="Precision Plot"
+                title="Precision plots of OPE on LasHeR"
             elif metric_fun==self.NPR:
-                title="Normalized Precision Plot"
+                title="Normalized Precision plots of OPE on LasHeR"
             elif metric_fun==self.SR:
-                title="Success Plot"
+                title="Success plots of OPE on LasHeR"
 
         return super().draw_plot(axis=axis, 
                                  metric_fun=metric_fun, 
                                  filename=filename, 
                                  title=title, 
-                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc)
+                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc,
+                                 x_label=x_label, y_label=y_label)

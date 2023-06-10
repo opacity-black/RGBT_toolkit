@@ -75,7 +75,8 @@ class GTOT(BaseRGBTDataet):
         
         Returns
         -------
-        Same as MPR.
+        [out0] When evaluating a single tracker, return MSR and the Success Rate at different thresholds.
+        [out1] Other cases return a dictionary with all tracker results.
         """
         if seqs==None:
             seqs = self.seqs_name
@@ -88,6 +89,7 @@ class GTOT(BaseRGBTDataet):
                 res[k] = self.MSR_fun(self, v, seqs)
             return res
 
+
     def draw_plot(self, metric_fun, filename=None, title=None, seqs=None):
         assert metric_fun==self.MSR or metric_fun==self.MPR
         if filename==None:
@@ -96,10 +98,14 @@ class GTOT(BaseRGBTDataet):
                 filename+="_MPR"
                 axis = self.MPR_fun.thr
                 loc = "lower right"
+                x_label = "Location error threshold"
+                y_label = "Precision"
             elif metric_fun==self.MSR:
                 filename+="_MSR"
                 axis = self.MSR_fun.thr
                 loc = "lower left"
+                x_label = "overlap threshold"
+                y_label = "Success Rate"
             filename+="_plot.png"
 
         if title==None:
@@ -112,4 +118,5 @@ class GTOT(BaseRGBTDataet):
                                  metric_fun=metric_fun, 
                                  filename=filename, 
                                  title=title, 
-                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc)
+                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc,
+                                 x_label=x_label, y_label=y_label)

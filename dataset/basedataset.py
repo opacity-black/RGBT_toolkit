@@ -61,7 +61,9 @@ class BaseRGBTDataet:
             choose 'ltrb' (top left corner and bottom left corner coordinates), 'xywh' (center 
             point coordinates with width and height). 
         [in] v_name - str
-
+            The ground truth file name of visible images.
+        [in] i_name - str
+            The ground truth file name of infrared images.
         """
         self.gt_path = gt_path
 
@@ -123,7 +125,7 @@ class BaseRGBTDataet:
 
 
     def draw_plot(self, axis, metric_fun, filename, y_max:float, y_min:float, title=None, 
-                  seqs=None, loc="best", rank="descend"):
+                  seqs=None, loc="best", rank="descend", **argdict):
         if seqs==None:
             seqs = self.ALL
         
@@ -140,4 +142,4 @@ class BaseRGBTDataet:
             idx = sorted(range(len(vals)), key=lambda x:vals[x], reverse=False)
         result = [result[i] for i in idx]
         
-        draw_plot(axis=axis, result=result, fn=filename, title=title, y_max=y_max, y_min=y_min, loc=loc)
+        draw_plot(axis=axis, result=result, fn=filename, title=title, y_max=y_max, y_min=y_min, loc=loc, **argdict)

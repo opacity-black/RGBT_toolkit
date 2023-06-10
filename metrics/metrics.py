@@ -119,7 +119,7 @@ class MPR_GTOT(Metric):
 
         pr = np.array(pr)
         pr_val = pr[:, 10].sum()/all_frame_num
-        return pr_val, pr
+        return pr_val, pr/all_frame_num*pr.shape[0]
 
 
 
@@ -157,11 +157,11 @@ class MSR_GTOT(Metric):
 
         sr = np.array(sr)
         sr_val = 0
-        a = (sr[:, 1:]*self.thr[1]).sum()
+        a = (sr[:, 1:]*self.thr[1]).sum()   # calc auc
         b = (sr[:, :-1]*self.thr[1]).sum()
         sr_val += (a+b)/2.
         sr_val = sr_val/all_frame_num
-        return sr_val, sr
+        return sr_val, sr/all_frame_num*sr.shape[0]
 
 
 

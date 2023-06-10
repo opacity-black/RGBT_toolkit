@@ -67,7 +67,7 @@ class RGBT210(BaseRGBTDataet):
         
         Returns
         -------
-        [out0] When evaluating a single tracker, return MPR and the precision Rate at different thresholds.
+        [out0] When evaluating a single tracker, return PR and the precision Rate at different thresholds.
         [out1] Other cases return a dictionary with all tracker results.
         """
         if seqs==None:
@@ -94,7 +94,8 @@ class RGBT210(BaseRGBTDataet):
         
         Returns
         -------
-        Same as PR.
+        [out0] When evaluating a single tracker, return SR and the Success Rate at different thresholds.
+        [out1] Other cases return a dictionary with all tracker results.
         """
         if seqs==None:
             seqs = self.seqs_name
@@ -127,10 +128,14 @@ class RGBT210(BaseRGBTDataet):
                 filename+="_PR"
                 axis = self.PR_fun.thr
                 loc = "lower right"
+                x_label = "Location error threshold"
+                y_label = "Precision"
             elif metric_fun==self.SR:
                 filename+="_SR"
                 axis = self.SR_fun.thr
                 loc = "lower left"
+                x_label = "overlap threshold"
+                y_label = "Success Rate"
             filename+="_plot.png"
 
         if title==None:
@@ -143,4 +148,5 @@ class RGBT210(BaseRGBTDataet):
                                  metric_fun=metric_fun, 
                                  filename=filename, 
                                  title=title, 
-                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc)
+                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc,
+                                 x_label=x_label, y_label=y_label)
