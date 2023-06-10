@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from vis.draw_utils import COLOR, LINE_STYLE
+from rgbt.vis.draw_utils import COLOR, LINE_STYLE
 
 def draw_plot(axis:np.ndarray, result:list, fn:str, title:str, y_max:float, y_min:float, loc:str, 
               x_label='', y_label=''):

@@ -1,23 +1,24 @@
 
-from dataset.basedataset import BaseRGBTDataet, TrackerResult
-from utils import *
+from .basedataset import BaseRGBTDataet,_basepath
+from rgbt.utils import *
 import os
-from metrics import MPR,MSR
+from rgbt.metrics import PR,SR
 
-class RGBT234(BaseRGBTDataet):
+class RGBT210(BaseRGBTDataet):
     """
-    RGBT234 dataset: `RGB-T Object Tracking: Benchmark and Baseline.`\r
-    [Paper.](https://arxiv.org/abs/1805.08982) \r
+    RGBT210 dataset is the subset of RGBT234.\r
+    `Weighted Sparse Representation Regularized Graph Learning for RGB-T Object Tracking.`\r
+    [Paper](https://dl.acm.org/doi/pdf/10.1145/3123266.3123289) \r
     [Download Dataset.](https://github.com/mmic-lcl/Datasets-and-benchmark-code)
     """
-    def __init__(self, gt_path='./gt_file/RGBT234/rgbt234_gt/',
-                 seq_name_path="./gt_file/RGBT234/attr_txt/SequencesName.txt") -> None:
+    def __init__(self, gt_path=f'{_basepath}/gt_file/RGBT210/groundtruth/',
+                 seq_name_path=f"{_basepath}/gt_file/RGBT210/SequencesName.txt") -> None:
         seqs = load_text(seq_name_path, dtype=str)
-        super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh', v_name='visible.txt', i_name='infrared.txt')
+        super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh', v_name='init.txt', i_name='init.txt')
 
-        self.name = 'RGBT234'
-        self.MPR_fun = MPR()
-        self.MSR_fun = MSR()
+        self.name = 'RGBT210'
+        self.PR_fun = PR()
+        self.SR_fun = SR()
 
         # Challenge attributes
         self._attr_list = ("BC","CM","DEF","FM","HO","LI","LR","MB","NO","TC","PO","SC")
@@ -34,7 +35,7 @@ class RGBT234(BaseRGBTDataet):
         self.PO = self.choose_serial_by_att("PO")
         self.SC = self.choose_serial_by_att("SC")
 
-    def __call__(self, tracker_name, result_path: str, seqs=None, prefix='', bbox_type='ltwh') -> TrackerResult:
+    def __call__(self, tracker_name, result_path: str, seqs=None, prefix='', bbox_type='ltwh'):
         RGBT_start()
         res = super().__call__(tracker_name, result_path, seqs, prefix, bbox_type)
         RGBT_end()
@@ -48,22 +49,15 @@ class RGBT234(BaseRGBTDataet):
             return self.seqs_name
         else:
             p = load_text(os.path.join(self.gt_path, '..', 'attr_txt', attr+'.txt'))
-            return [seq_name for i,seq_name in zip(p, self.seqs_name) if i]
+            with open(os.path.join(self.gt_path, '..', 'attr_txt', 'SequencesName.txt')) as f:
+                seq_name_s = f.read().split('\n')
+            seq_name_s = seq_name_s[:len(p)]
+            return [seq_name for i,seq_name in zip(p, seq_name_s) if (i and seq_name in self.seqs_name)]
 
-    def MPR(self, tracker_name=None, seqs=None):
+
+
+    def PR(self, tracker_name=None, seqs=None):
         """
-        NOTE
-        ---------
-        > Maximum Precision Rate (MPR). PR is the percentage of frames whose output location 
-        is within the given threshold distance of ground truth. That is to say, it computes 
-        the average Euclidean distance between the center locations of the tracked target 
-        and the manually labeled ground-truth positions of all the frames. Although our 
-        alignment between two modalities is highly accurate, there still exist small alignment 
-        errors. Therefore, we use maximum precision rate (MPR) instead of PR in this paper. 
-        Specifically, for each frame, we compute the above Euclidean distance on both RGB and 
-        thermal modalities, and adopt the smaller distance to compute the precision. 
-        We set the threshold to be 20 pixels to obtain the representative MPR.
-
         Parameters
         ----------
         [in] tracker_name - str
@@ -73,30 +67,24 @@ class RGBT234(BaseRGBTDataet):
         
         Returns
         -------
-        [out0] When evaluating a single tracker, return MPR and the precision Rate at different thresholds.
+        [out0] When evaluating a single tracker, return PR and the precision Rate at different thresholds.
         [out1] Other cases return a dictionary with all tracker results.
         """
         if seqs==None:
             seqs = self.seqs_name
 
         if tracker_name!=None:
-            return self.MPR_fun(self, self.trackers[tracker_name], seqs)
+            return self.PR_fun(self, self.trackers[tracker_name], seqs)
         else:
             res = {}
             for k,v in self.trackers.items():
-                res[k] = self.MPR_fun(self, v, seqs)
+                res[k] = self.PR_fun(self, v, seqs)
             return res
 
 
-    def MSR(self, tracker_name=None, seqs=None):
-        """
-        NOTE
-        ---------
-        > Maximum Success Rate (MSR). SR is the ratio of the number of successful frames whose 
-        overlap is larger than a threshold. Similar to MPR, we also define maximum success 
-        rate (MSR) to measure the tracker results. By varying the threshold, the MSR plot can 
-        be obtained, and we employ the area under curve of MSR plot to define the representative MSR.
 
+    def SR(self, tracker_name=None, seqs=None):
+        """
         Parameters
         ----------
         [in] tracker_name - str
@@ -106,53 +94,54 @@ class RGBT234(BaseRGBTDataet):
         
         Returns
         -------
-        [out0] When evaluating a single tracker, return MSR and the Success Rate at different thresholds.
+        [out0] When evaluating a single tracker, return SR and the Success Rate at different thresholds.
         [out1] Other cases return a dictionary with all tracker results.
         """
         if seqs==None:
             seqs = self.seqs_name
 
         if tracker_name!=None:
-            return self.MSR_fun(self, self.trackers[tracker_name], seqs)
+            return self.SR_fun(self, self.trackers[tracker_name], seqs)
         else:
             res = {}
             for k,v in self.trackers.items():
-                res[k] = self.MSR_fun(self, v, seqs)
+                res[k] = self.SR_fun(self, v, seqs)
             return res
 
 
     def draw_attributeRadar(self, metric_fun, filename=None):
         if filename==None:
             filename = self.name
-            if metric_fun==self.MPR:
-                filename+="_MPR"
-            elif metric_fun==self.MSR:
-                filename+="_MSR"
+            if metric_fun==self.PR:
+                filename+="_PR"
+            elif metric_fun==self.SR:
+                filename+="_SR"
             filename+="_radar.png"
         return super().draw_attributeRadar(metric_fun, filename)
     
+
     def draw_plot(self, metric_fun, filename=None, title=None, seqs=None):
-        assert metric_fun==self.MSR or metric_fun==self.MPR
+        assert metric_fun==self.SR or metric_fun==self.PR
         if filename==None:
             filename = self.name
-            if metric_fun==self.MPR:
-                filename+="_MPR"
-                axis = self.MPR_fun.thr
+            if metric_fun==self.PR:
+                filename+="_PR"
+                axis = self.PR_fun.thr
                 loc = "lower right"
                 x_label = "Location error threshold"
                 y_label = "Precision"
-            elif metric_fun==self.MSR:
-                filename+="_MSR"
-                axis = self.MSR_fun.thr
+            elif metric_fun==self.SR:
+                filename+="_SR"
+                axis = self.SR_fun.thr
                 loc = "lower left"
                 x_label = "overlap threshold"
                 y_label = "Success Rate"
             filename+="_plot.png"
 
         if title==None:
-            if metric_fun==self.MPR:
+            if metric_fun==self.PR:
                 title="Precision Plot"
-            elif metric_fun==self.MSR:
+            elif metric_fun==self.SR:
                 title="Success Plot"
 
         return super().draw_plot(axis=axis, 

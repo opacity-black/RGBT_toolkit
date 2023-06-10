@@ -1,4 +1,4 @@
-from dataset import RGBT210
+from rgbt import RGBT210
 
 rgbt210 = RGBT210()
 

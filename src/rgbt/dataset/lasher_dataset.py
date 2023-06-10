@@ -1,16 +1,16 @@
 
-from dataset.basedataset import BaseRGBTDataet
-from utils import *
+from .basedataset import BaseRGBTDataet,_basepath
+from rgbt.utils import *
 import os
-from metrics import PR_LasHeR,SR_LasHeR,NPR
+from rgbt.metrics import PR_LasHeR,SR_LasHeR,NPR
 
 class LasHeR(BaseRGBTDataet):
     """
     Publication: `LasHeR: A Large-scale High-diversity Benchmark for RGBT Tracking`
     [Download Dataset.](https://github.com/mmic-lcl/Datasets-and-benchmark-code)
     """
-    def __init__(self, gt_path='./gt_file/LasHeR/lasher_gt/',
-                 seq_name_path="./gt_file/LasHeR/lashertest.txt") -> None:
+    def __init__(self, gt_path=f'{_basepath}/gt_file/LasHeR/lasher_gt/',
+                 seq_name_path=f"{_basepath}/gt_file/LasHeR/lashertest.txt") -> None:
         seqs = load_text(seq_name_path, dtype=str)
         super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh')
 

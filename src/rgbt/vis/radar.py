@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from matplotlib import rc
-from vis.draw_utils import COLOR, MARKER_STYLE
+from rgbt.vis.draw_utils import COLOR, MARKER_STYLE
 
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=False)

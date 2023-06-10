@@ -1,5 +1,5 @@
 
-from dataset.basedataset import BaseRGBTDataet, TrackerResult
+from rgbt.dataset.basedataset import BaseRGBTDataet, TrackerResult
 
 
 class Metric:

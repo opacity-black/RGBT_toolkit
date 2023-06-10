@@ -1,4 +1,4 @@
-from dataset import LasHeR
+from rgbt import LasHeR
 
 lasher = LasHeR()
 

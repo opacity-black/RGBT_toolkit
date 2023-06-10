@@ -1,7 +1,9 @@
 
-from utils import *
+from rgbt.utils import *
 import os
-from vis import draw_radar, draw_plot
+from rgbt.vis import draw_radar, draw_plot
+from rgbt import __file__ as basepath
+_basepath = os.path.dirname(basepath)
 
 
 def initial_gt_file(gt_path:str, seqs:list, v_name:str, i_name:str, bbox_trans):

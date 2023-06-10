@@ -1,8 +1,8 @@
 
-from dataset.basedataset import BaseRGBTDataet
-from utils import *
+from .basedataset import BaseRGBTDataet,_basepath
+from rgbt.utils import *
 import os
-from metrics import MPR_GTOT,MSR_GTOT
+from rgbt.metrics import MPR_GTOT,MSR_GTOT
 
 class GTOT(BaseRGBTDataet):
     """
@@ -12,8 +12,8 @@ class GTOT(BaseRGBTDataet):
 
     NOTE: this is not support attribute test. [Just here, not GTOT]
     """
-    def __init__(self, gt_path="./gt_file/GTOT/groundtruth/",
-                 seq_name_path="./gt_file/GTOT/SequencesName.txt") -> None:
+    def __init__(self, gt_path=f"{_basepath}/gt_file/GTOT/groundtruth/",
+                 seq_name_path=f"{_basepath}/gt_file/GTOT/SequencesName.txt") -> None:
         seqs = load_text(seq_name_path, dtype=str)
         super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltrb', v_name='groundTruth_v.txt', i_name='groundTruth_i.txt')
         # super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh', v_name='init.txt', i_name='init.txt')

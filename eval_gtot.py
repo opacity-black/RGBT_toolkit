@@ -1,5 +1,5 @@
-from dataset import GTOT
-from utils import RGBT_start,RGBT_end
+from rgbt import GTOT
+from rgbt.utils import RGBT_start,RGBT_end
 
 RGBT_start()
 gtot = GTOT()

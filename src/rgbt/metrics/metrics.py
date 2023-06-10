@@ -1,9 +1,9 @@
 
 from .base import Metric
-from dataset.basedataset import BaseRGBTDataet, TrackerResult
+from rgbt.dataset.basedataset import BaseRGBTDataet, TrackerResult
 import numpy as np
 
-from utils import *
+from rgbt.utils import *
 
 
 class MPR(Metric):

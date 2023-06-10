@@ -4,3 +4,5 @@ __pycache__
 *.pyc
 
 result/*
+
+dist/
