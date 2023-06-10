@@ -2,7 +2,7 @@
 from dataset.basedataset import BaseRGBTDataet
 from utils import *
 import os
-from metrics import MPR,MSR
+from metrics import MPR_GTOT,MSR_GTOT
 
 class GTOT(BaseRGBTDataet):
     """
@@ -19,8 +19,8 @@ class GTOT(BaseRGBTDataet):
         # super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh', v_name='init.txt', i_name='init.txt')
 
         self.name = 'GTOT'
-        self.MPR_fun = MPR(thr=np.linspace(0, 25, 51))
-        self.MSR_fun = MSR(thr=np.linspace(0, 1, 51))
+        self.MPR_fun = MPR_GTOT()
+        self.MSR_fun = MSR_GTOT()
 
         # Challenge attributes
         self._attr_list = (None)
@@ -53,8 +53,7 @@ class GTOT(BaseRGBTDataet):
         else:
             res = {}
             for k,v in self.trackers.items():
-                res[k] = list(self.MPR_fun(self, v, seqs))
-                res[k][0] = res[k][1].mean(axis=0)[10]
+                res[k] = self.MPR_fun(self, v, seqs)
             return res
 
 

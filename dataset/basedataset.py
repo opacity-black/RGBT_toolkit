@@ -17,7 +17,7 @@ def initial_gt_file(gt_path:str, seqs:list, v_name:str, i_name:str, bbox_trans):
 def initial_result_file(path:str, seqs:list, bbox_trans, prefix=''):
     res = {}
     for seq_name in seqs:
-        serial = load_text(os.path.join(path, prefix+seq_name+'.txt'))
+        serial = load_text(os.path.join(path, prefix+seq_name+'.txt')).round(0)
         res[seq_name] = serial_process(bbox_trans, serial)
     return res
 
@@ -109,7 +109,7 @@ class BaseRGBTDataet:
         raise ImportError
 
 
-    def draw_attributeRadar(self, metric_fun, filename):
+    def draw_attributeRadar(self, metric_fun, filename, **argdict):
         """
         Draw a radar chart with all challenge attributes.
         """
@@ -119,7 +119,7 @@ class BaseRGBTDataet:
             for i,(k,v) in enumerate(dict.items()):
                 result[i][1].append(v[0])
 
-        draw_radar(result=result, attrs=self.get_attr_list(), fn=filename)
+        draw_radar(result=result, attrs=self.get_attr_list(), fn=filename, **argdict)
 
 
     def draw_plot(self, axis, metric_fun, filename, y_max:float, y_min:float, title=None, 

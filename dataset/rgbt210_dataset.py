@@ -35,6 +35,12 @@ class RGBT210(BaseRGBTDataet):
         self.PO = self.choose_serial_by_att("PO")
         self.SC = self.choose_serial_by_att("SC")
 
+    def __call__(self, tracker_name, result_path: str, seqs=None, prefix='', bbox_type='ltwh'):
+        RGBT_start()
+        res = super().__call__(tracker_name, result_path, seqs, prefix, bbox_type)
+        RGBT_end()
+        return res
+
     def get_attr_list(self):
         return self._attr_list
 
