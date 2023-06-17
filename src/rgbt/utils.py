@@ -94,26 +94,31 @@ def bbox_type_trans(bbox_type_src, bbox_type_new):
     
 
 
-def serial_process(fun, *serial, **dict):
-    res = []
-    if len(serial)==1:
-        for item in zip(*serial):
-            if isinstance(item, tuple):
-                item = item[0]
-            res.append(fun(item, **dict))
-    if len(serial)==2:
-        for item1, item2 in zip(*serial):
-            # if isinstance(item1, tuple):
-            #     item1 = item1[0];item2 = item2[0]
-            res.append(fun(item1, item2, **dict))
-    return res
+def serial_process(fun, *serial):
+    return list(map(fun, *serial))
+
+
+# 旧版的，支持传参，但效率较低
+# def serial_process(fun, *serial, **dict):
+#     res = []
+#     if len(serial)==1:
+#         for item in zip(*serial):
+#             if isinstance(item, tuple):
+#                 item = item[0]
+#             res.append(fun(item, **dict))
+#     if len(serial)==2:
+#         for item1, item2 in zip(*serial):
+#             # if isinstance(item1, tuple):
+#             #     item1 = item1[0];item2 = item2[0]
+#             res.append(fun(item1, item2, **dict))
+#     return res
 
 
 def normalize(cx, cy, gt_w, gt_h, eps=1e-8):
     return cx/(gt_w+eps), cy/(gt_h+eps)
 
 
-def CLE(rect1, rect2, need_normalize=False):
+def CLE(rect1, rect2):
     """ caculate center location error
     NOTE: Default rect2 is groundtruth
     Args:
@@ -128,9 +133,27 @@ def CLE(rect1, rect2, need_normalize=False):
     else:
         cp1 = [rect1[2]/2.+rect1[0], rect1[3]/2.+rect1[1]]
         cp2 = [rect2[2]/2.+rect2[0], rect2[3]/2.+rect2[1]]
-    if need_normalize:
-        cp1 = normalize(cp1[0], cp1[1], rect2[2], rect2[3])
-        cp2 = normalize(cp2[0], cp2[1], rect2[2], rect2[3])
+    d = ((cp1[0]-cp2[0])**2 + (cp1[1]-cp2[1])**2)**0.5
+    return d
+
+
+def normalize_CLE(rect1, rect2):
+    """ caculate center location error
+    NOTE: Default rect2 is groundtruth
+    Args:
+        rect1: (l, t, w, h)
+        rect2: (l, t, w, h)
+    Returns:
+        center location error
+    """
+    if _strict:
+        cp1 = [(rect1[2]-1)/2.+rect1[0], (rect1[3]-1)/2.+rect1[1]]
+        cp2 = [(rect2[2]-1)/2.+rect2[0], (rect2[3]-1)/2.+rect2[1]]
+    else:
+        cp1 = [rect1[2]/2.+rect1[0], rect1[3]/2.+rect1[1]]
+        cp2 = [rect2[2]/2.+rect2[0], rect2[3]/2.+rect2[1]]
+    cp1 = normalize(cp1[0], cp1[1], rect2[2], rect2[3])
+    cp2 = normalize(cp2[0], cp2[1], rect2[2], rect2[3])
     d = ((cp1[0]-cp2[0])**2 + (cp1[1]-cp2[1])**2)**0.5
     return d
 

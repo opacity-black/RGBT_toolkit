@@ -346,7 +346,7 @@ class NPR(Metric):
             for i in range(1, len(gt)):
                 if serial[i][2]<=0 or serial[i][3]<=0:
                     serial[i] = serial[i-1].copy()
-            res = np.array(serial_process(CLE, serial, gt, need_normalize=True))
+            res = np.array(serial_process(normalize_CLE, serial, gt))
 
             for i in range(len(gt)):
                 if sum(gt[i]<=0):
