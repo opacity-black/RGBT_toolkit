@@ -54,7 +54,7 @@ class LasHeR(BaseRGBTDataet):
             seqs = []
             for seq in self.seqs_name:
                 i = self.get_attr_list().index(attr)
-                path = os.path.join('./gt_file/LasHeR/AttriSeqsTxt', seq+'.txt')
+                path = os.path.join(self.gt_path, '..', 'AttriSeqsTxt', seq+'.txt')
                 p = load_text(path)[i]
                 if p==1.:
                     seqs.append(seq)
