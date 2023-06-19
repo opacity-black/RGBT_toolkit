@@ -6,3 +6,5 @@ __pycache__
 result/*
 
 dist/
+
+src/eval_*.py
