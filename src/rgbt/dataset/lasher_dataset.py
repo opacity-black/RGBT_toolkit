@@ -3,6 +3,7 @@ from .basedataset import BaseRGBTDataet,_basepath
 from rgbt.utils import *
 import os
 from rgbt.metrics import PR_LasHeR,SR_LasHeR,NPR
+from rgbt.vis.default_config import Setting, get_PR_Setting, get_SR_Setting
 
 class LasHeR(BaseRGBTDataet):
     """
@@ -18,6 +19,26 @@ class LasHeR(BaseRGBTDataet):
         self.PR_fun = PR_LasHeR()
         self.SR_fun = SR_LasHeR()
         self.NPR_fun = NPR()
+
+        
+        self.PR_PlotSetting = get_PR_Setting()
+        self.PR_PlotSetting.axis = self.PR_fun.thr
+        self.PR_PlotSetting.filename = self.name+"_PR_plot.png"
+        self.PR_PlotSetting.title = "Precision plots of OPE on LasHeR"
+        
+        self.SR_PlotSetting = get_SR_Setting()
+        self.SR_PlotSetting.axis = self.SR_fun.thr
+        self.SR_PlotSetting.filename = self.name+"_SR_plot.png"
+        self.SR_PlotSetting.title = "Success plots of OPE on LasHeR"
+
+        self.NPR_PlotSetting = get_PR_Setting()
+        self.NPR_PlotSetting.axis = self.NPR_fun.thr
+        self.NPR_PlotSetting.filename = self.name+"_NPR_plot.png"
+        self.NPR_PlotSetting.legend_loc = "lower right"
+        self.NPR_PlotSetting.xlabel = "Normalized Location error threshold"
+        self.NPR_PlotSetting.ylabel = "Normalized Precision"
+        self.NPR_PlotSetting.title="Normalized Precision plots of OPE on LasHeR"
+
 
         # Challenge attributes
         self._attr_list = ('NO', 'PO', 'TO', 'HO', 'MB', 
@@ -60,7 +81,7 @@ class LasHeR(BaseRGBTDataet):
                     seqs.append(seq)
             return seqs
 
-    def PR(self, tracker_name=None, seqs=None):
+    def PR(self, tracker_name:Any=None, seqs=None):
         """
         Parameters
         ----------
@@ -85,7 +106,7 @@ class LasHeR(BaseRGBTDataet):
                 res[k] = self.PR_fun(self, v, seqs)
             return res
 
-    def NPR(self, tracker_name=None, seqs=None):
+    def NPR(self, tracker_name:Any=None, seqs=None):
         """
         """
         if seqs==None:
@@ -100,7 +121,7 @@ class LasHeR(BaseRGBTDataet):
             return res
 
 
-    def SR(self, tracker_name=None, seqs=None):
+    def SR(self, tracker_name:Any=None, seqs=None):
         """
         Parameters
         ----------
@@ -132,41 +153,26 @@ class LasHeR(BaseRGBTDataet):
         return super().draw_attributeRadar(metric_fun, filename)
     
 
-    def draw_plot(self, metric_fun, filename=None, title=None, seqs=None):
-        assert metric_fun in [self.NPR, self.PR, self.SR]
-        if filename==None:
-            filename = self.name
-            if metric_fun==self.PR:
-                filename+="_PR"
-                axis = self.PR_fun.thr
-                loc = "lower right"
-                x_label = "Location error threshold"
-                y_label = "Precision"
-            elif metric_fun==self.NPR:
-                filename+="_NPR"
-                axis = self.NPR_fun.thr
-                loc = "lower right"
-                x_label = "Normalized Location error threshold"
-                y_label = "Normalized Precision"
-            elif metric_fun==self.SR:
-                filename+="_SR"
-                axis = self.SR_fun.thr
-                loc = "lower left"
-                x_label = "Overlap threshold"
-                y_label = "Success Rate"
-            filename+="_plot.png"
+    def pr_plot(self, filename=None, seqs=None, plotSetting=None):
+        metric_fun=self.PR
+        if filename!=None:
+            self.PR_PlotSetting.filename = filename
+        if plotSetting==None:
+            plotSetting = self.PR_PlotSetting
+        return super().plot(metric_fun=metric_fun, seqs=seqs, plotSetting=plotSetting)
+    
+    def npr_plot(self, filename=None, seqs=None, plotSetting=None):
+        metric_fun=self.NPR
+        if plotSetting==None:
+            plotSetting = self.NPR_PlotSetting
+        if filename!=None:
+            plotSetting.filename = filename
+        return super().plot(metric_fun=metric_fun, seqs=seqs, plotSetting=plotSetting)
 
-        if title==None:
-            if metric_fun==self.PR:
-                title="Precision plots of OPE on LasHeR"
-            elif metric_fun==self.NPR:
-                title="Normalized Precision plots of OPE on LasHeR"
-            elif metric_fun==self.SR:
-                title="Success plots of OPE on LasHeR"
-
-        return super().draw_plot(axis=axis, 
-                                 metric_fun=metric_fun, 
-                                 filename=filename, 
-                                 title=title, 
-                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc,
-                                 x_label=x_label, y_label=y_label)
+    def sr_plot(self, filename=None, seqs=None, plotSetting=None):
+        metric_fun=self.SR
+        if plotSetting==None:
+            plotSetting = self.SR_PlotSetting
+        if filename!=None:
+            plotSetting.filename = filename
+        return super().plot(metric_fun=metric_fun, seqs=seqs, plotSetting=plotSetting)

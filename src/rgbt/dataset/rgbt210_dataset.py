@@ -3,6 +3,7 @@ from .basedataset import BaseRGBTDataet,_basepath
 from rgbt.utils import *
 import os
 from rgbt.metrics import PR,SR
+from rgbt.vis.default_config import Setting, get_PR_Setting, get_SR_Setting
 
 class RGBT210(BaseRGBTDataet):
     """
@@ -19,6 +20,14 @@ class RGBT210(BaseRGBTDataet):
         self.name = 'RGBT210'
         self.PR_fun = PR()
         self.SR_fun = SR()
+        
+        self.PR_PlotSetting = get_PR_Setting()
+        self.PR_PlotSetting.axis = self.PR_fun.thr
+        self.PR_PlotSetting.filename = self.name+"_PR_plot.png"
+        
+        self.SR_PlotSetting = get_SR_Setting()
+        self.SR_PlotSetting.axis = self.SR_fun.thr
+        self.SR_PlotSetting.filename = self.name+"_SR_plot.png"
 
         # Challenge attributes
         self._attr_list = ("BC","CM","DEF","FM","HO","LI","LR","MB","NO","TC","PO","SC")
@@ -56,7 +65,7 @@ class RGBT210(BaseRGBTDataet):
 
 
 
-    def PR(self, tracker_name=None, seqs=None):
+    def PR(self, tracker_name:Any=None, seqs=None):
         """
         Parameters
         ----------
@@ -83,7 +92,7 @@ class RGBT210(BaseRGBTDataet):
 
 
 
-    def SR(self, tracker_name=None, seqs=None):
+    def SR(self, tracker_name:Any=None, seqs=None):
         """
         Parameters
         ----------
@@ -118,35 +127,21 @@ class RGBT210(BaseRGBTDataet):
                 filename+="_SR"
             filename+="_radar.png"
         return super().draw_attributeRadar(metric_fun, filename)
+        
+
+    def pr_plot(self, filename=None, seqs=None, plotSetting=None):
+        metric_fun=self.PR
+        if plotSetting==None:
+            plotSetting = self.PR_PlotSetting
+        if filename!=None:
+            plotSetting.filename = filename
+        return super().plot(metric_fun=metric_fun, seqs=seqs, plotSetting=plotSetting)
     
 
-    def draw_plot(self, metric_fun, filename=None, title=None, seqs=None):
-        assert metric_fun==self.SR or metric_fun==self.PR
-        if filename==None:
-            filename = self.name
-            if metric_fun==self.PR:
-                filename+="_PR"
-                axis = self.PR_fun.thr
-                loc = "lower right"
-                x_label = "Location error threshold"
-                y_label = "Precision"
-            elif metric_fun==self.SR:
-                filename+="_SR"
-                axis = self.SR_fun.thr
-                loc = "lower left"
-                x_label = "overlap threshold"
-                y_label = "Success Rate"
-            filename+="_plot.png"
-
-        if title==None:
-            if metric_fun==self.PR:
-                title="Precision Plot"
-            elif metric_fun==self.SR:
-                title="Success Plot"
-
-        return super().draw_plot(axis=axis, 
-                                 metric_fun=metric_fun, 
-                                 filename=filename, 
-                                 title=title, 
-                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc,
-                                 x_label=x_label, y_label=y_label)
+    def sr_plot(self, filename=None, seqs=None, plotSetting=None):
+        metric_fun=self.SR
+        if plotSetting==None:
+            plotSetting = self.SR_PlotSetting
+        if filename!=None:
+            plotSetting.filename = filename
+        return super().plot(metric_fun=metric_fun, seqs=seqs, plotSetting=plotSetting)

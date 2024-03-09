@@ -3,6 +3,8 @@ from rgbt.dataset.basedataset import BaseRGBTDataet, TrackerResult,_basepath
 from rgbt.utils import *
 import os
 from rgbt.metrics import MPR,MSR
+from rgbt.vis.default_config import Setting, get_PR_Setting, get_SR_Setting
+
 
 class RGBT234(BaseRGBTDataet):
     """
@@ -16,8 +18,17 @@ class RGBT234(BaseRGBTDataet):
         super().__init__(gt_path=gt_path, seqs=seqs, bbox_type='ltwh', v_name='visible.txt', i_name='infrared.txt')
 
         self.name = 'RGBT234'
+
         self.MPR_fun = MPR()
         self.MSR_fun = MSR()
+
+        self.MPR_PlotSetting = get_PR_Setting()
+        self.MPR_PlotSetting.axis = self.MPR_fun.thr
+        self.MPR_PlotSetting.filename = self.name+"_MPR_plot.png"
+        
+        self.MSR_PlotSetting = get_SR_Setting()
+        self.MSR_PlotSetting.axis = self.MSR_fun.thr
+        self.MSR_PlotSetting.filename = self.name+"_MSR_plot.png"
 
         # Challenge attributes
         self._attr_list = ("BC","CM","DEF","FM","HO","LI","LR","MB","NO","TC","PO","SC")
@@ -34,14 +45,23 @@ class RGBT234(BaseRGBTDataet):
         self.PO = self.choose_serial_by_att("PO")
         self.SC = self.choose_serial_by_att("SC")
 
+
+    def __repr__(self) -> str:
+        return """RGBT234 dataset: `RGB-T Object Tracking: Benchmark and Baseline.`
+                [Paper.](https://arxiv.org/abs/1805.08982)
+                [Download Dataset.](https://github.com/mmic-lcl/Datasets-and-benchmark-code)"""
+
+
     def __call__(self, tracker_name, result_path: str, seqs=None, prefix='', bbox_type='ltwh') -> TrackerResult:
         RGBT_start()
         res = super().__call__(tracker_name, result_path, seqs, prefix, bbox_type)
         RGBT_end()
         return res
 
+
     def get_attr_list(self):
         return self._attr_list
+
 
     def choose_serial_by_att(self, attr):
         if attr==self.ALL:
@@ -50,7 +70,8 @@ class RGBT234(BaseRGBTDataet):
             p = load_text(os.path.join(self.gt_path, '..', 'attr_txt', attr+'.txt'))
             return [seq_name for i,seq_name in zip(p, self.seqs_name) if i]
 
-    def MPR(self, tracker_name=None, seqs=None):
+
+    def MPR(self, tracker_name:Any=None, seqs=None):
         """
         NOTE
         ---------
@@ -88,7 +109,7 @@ class RGBT234(BaseRGBTDataet):
             return res
 
 
-    def MSR(self, tracker_name=None, seqs=None):
+    def MSR(self, tracker_name:Any=None, seqs=None):
         """
         NOTE
         ---------
@@ -121,7 +142,7 @@ class RGBT234(BaseRGBTDataet):
             return res
 
 
-    def draw_attributeRadar(self, metric_fun, filename=None):
+    def draw_attributeRadar(self, metric_fun, filename:str=''):
         if filename==None:
             filename = self.name
             if metric_fun==self.MPR:
@@ -130,34 +151,29 @@ class RGBT234(BaseRGBTDataet):
                 filename+="_MSR"
             filename+="_radar.png"
         return super().draw_attributeRadar(metric_fun, filename)
+
+
+    def pr_plot(self, filename=None, seqs=None, plotSetting=None):
+        return self.mpr_plot(filename=filename, seqs=seqs, plotSetting=plotSetting)
+
+
+    def sr_plot(self, filename=None, seqs=None, plotSetting=None):
+        return self.msr_plot(filename=filename, seqs=seqs, plotSetting=plotSetting)
+
+
+    def mpr_plot(self, filename=None, seqs=None, plotSetting=None):
+        metric_fun=self.MPR
+        if plotSetting==None:
+            plotSetting = self.MPR_PlotSetting
+        if filename!=None:
+            plotSetting.filename = filename
+        return super().plot(metric_fun=metric_fun, seqs=seqs, plotSetting=plotSetting)
     
-    def draw_plot(self, metric_fun, filename=None, title=None, seqs=None):
-        assert metric_fun==self.MSR or metric_fun==self.MPR
-        if filename==None:
-            filename = self.name
-            if metric_fun==self.MPR:
-                filename+="_MPR"
-                axis = self.MPR_fun.thr
-                loc = "lower right"
-                x_label = "Location error threshold"
-                y_label = "Precision"
-            elif metric_fun==self.MSR:
-                filename+="_MSR"
-                axis = self.MSR_fun.thr
-                loc = "lower left"
-                x_label = "overlap threshold"
-                y_label = "Success Rate"
-            filename+="_plot.png"
 
-        if title==None:
-            if metric_fun==self.MPR:
-                title="Precision Plot"
-            elif metric_fun==self.MSR:
-                title="Success Plot"
-
-        return super().draw_plot(axis=axis, 
-                                 metric_fun=metric_fun, 
-                                 filename=filename, 
-                                 title=title, 
-                                 seqs=seqs, y_max=1.0, y_min=0.0, loc=loc,
-                                 x_label=x_label, y_label=y_label)
+    def msr_plot(self, filename=None, seqs=None, plotSetting=None):
+        metric_fun=self.MSR
+        if plotSetting==None:
+            plotSetting = self.MSR_PlotSetting
+        if filename!=None:
+            plotSetting.filename = filename
+        return super().plot(metric_fun=metric_fun, seqs=seqs, plotSetting=plotSetting)
