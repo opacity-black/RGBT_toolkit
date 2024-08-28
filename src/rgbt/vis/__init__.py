@@ -1,2 +1,2 @@
-from .radar import draw_radar
-from .plot import draw_plot
+from .radar import radar
+from .plot import plot
