@@ -2,14 +2,16 @@ from collections import namedtuple
 from numpy import ndarray
 import numpy as np
 from typing import Any,Union
+import json
 
 
 class Setting:
     def __init__(self, 
                 # global param
-                dpi:int = 300,
+                dpi:int = 300,                              # 分辨率
+                enable_saveimg = False,                        # 保存文件
                 filename:str = "default",
-                fig_size:tuple[float, float] = (6,5.5),
+                fig_size:tuple[float, float] = (6,5.5),     # 图像大小
                 legend_loc:str = "lower left",
                 legend_fontsize:int=14,
                 legend_bold:bool=False,
@@ -18,6 +20,7 @@ class Setting:
                 title_bold:bool=True,
                 ) -> None:
         self.dpi = dpi
+        self.enable_saveimg = enable_saveimg
         self.filename = filename
         self.legend_loc = legend_loc
         self.title = title
@@ -31,12 +34,25 @@ class Setting:
     def __repr__(self) -> str:
         return str(self.__dict__)
 
+    def save(self, name:str) -> None:
+        with open(name, 'w') as f:
+            json.dump(self.__dict__, f)
+            
+    def load(self, name:str) -> None:
+        with open(name, 'r') as f:
+            val = json.load(f)
+        for k,v in self.__dict__.items():
+            if k in val:
+                self.__dict__[k] = v
+            else:
+                raise BaseException(f"Unknow attribute \"{k}\".")
 
 
 class PlotSetting(Setting):
     def __init__(self, 
                 # global param
                 dpi:int = 300,
+                enable_saveimg = False,                        # 保存文件
                 filename:str = "default_plot",
                 fig_size:tuple[float, float] = (6,5.5),
                 legend_loc:str = "lower left",
@@ -61,7 +77,7 @@ class PlotSetting(Setting):
                 ytick_fontsize=None,
                 font="TimesNewRoman",
                 ) -> None:
-        super().__init__(dpi, filename, fig_size, legend_loc, legend_fontsize, legend_bold, 
+        super().__init__(dpi, enable_saveimg, filename, fig_size, legend_loc, legend_fontsize, legend_bold, 
                          title, title_fontsize, title_bold)
         self.axis = axis
         self.xticks = xticks
@@ -83,6 +99,7 @@ class PlotSetting(Setting):
 class RadarSetting(Setting):
     def __init__(self, 
                  dpi: int = 300, 
+                 enable_saveimg = False,                        # 保存文件
                  filename: str = "default_radar", 
                  fig_size: tuple[float, float] = (6, 5.5), 
                  legend_loc: str = "lower center", 
@@ -106,7 +123,7 @@ class RadarSetting(Setting):
                 ytick_fontsize=None,            # 刻度字体大小
                 board:tuple=(0.75, 0.02, 0.05, 0.95, 0.37),                 # 调整边距, 上下左右+子图边距
                  ) -> None:
-        super().__init__(dpi, filename, fig_size, legend_loc, legend_fontsize, legend_bold, title, title_fontsize)
+        super().__init__(dpi, enable_saveimg, filename, fig_size, legend_loc, legend_fontsize, legend_bold, title, title_fontsize)
         self.attr_li = attr_li
         self.frameon = frameon
         self.enable_ticks = enable_ticks
@@ -179,3 +196,15 @@ def get_Radar_Setting():
     radarPlotSetting.title = ''
     radarPlotSetting.legend_loc = "upper center"
     return radarPlotSetting
+
+
+if __name__=="__main__":
+    a=get_Radar_Setting()
+    a.save("default_radar.json")
+    a.load("default_radar.json")
+    
+    b=get_PR_Setting()
+    try:
+        b.load("default_radar.json")
+    except BaseException as e:
+        print(e)
