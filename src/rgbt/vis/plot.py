@@ -1,9 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from rgbt.vis.draw_utils import COLOR, LINE_STYLE
-from rgbt.vis.font import *
-from rgbt.vis.default_config import PlotSetting
+if __name__=="__main__":
+    from draw_utils import COLOR, LINE_STYLE
+    from font import TimesNewRoman
+    from default_config import PlotSetting
+else:
+    from rgbt.vis.draw_utils import COLOR, LINE_STYLE
+    from rgbt.vis.font import TimesNewRoman
+    from rgbt.vis.default_config import PlotSetting
 
 def plot(result:list[tuple[str, np.ndarray]], setting:PlotSetting):
     axis = setting.axis
@@ -35,7 +40,11 @@ def plot(result:list[tuple[str, np.ndarray]], setting:PlotSetting):
     ax.set_xlabel(setting.xlabel, fontdict=TimesNewRoman(setting.xlabel_fontsize, setting.xlabel_bold))
     ax.set_ylabel(setting.ylabel, fontdict=TimesNewRoman(setting.ylabel_fontsize, setting.ylabel_bold))
     ax.legend(loc=setting.legend_loc, prop=TimesNewRoman(setting.legend_fontsize, setting.legend_bold))
-    fig.savefig(setting.filename, dpi=setting.dpi)
+
+    if setting.enable_saveimg:
+        fig.savefig(setting.filename, dpi=setting.dpi)
+    else:
+        fig.show()
 
 
 
@@ -47,3 +56,4 @@ if __name__=="__main__":
     setting = PlotSetting()
     setting.axis = np.arange(7)
     plot(data, setting)
+    input()
