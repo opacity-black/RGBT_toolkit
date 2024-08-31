@@ -9,7 +9,7 @@ class Setting:
     def __init__(self, 
                 # global param
                 dpi:int = 300,                              # 分辨率
-                enable_saveimg = False,                        # 保存文件
+                enable_saveimg = True,                        # 保存文件
                 filename:str = "default",
                 fig_size:tuple[float, float] = (6,5.5),     # 图像大小
                 legend_loc:str = "lower left",
@@ -52,7 +52,7 @@ class PlotSetting(Setting):
     def __init__(self, 
                 # global param
                 dpi:int = 300,
-                enable_saveimg = False,                        # 保存文件
+                enable_saveimg = True,                        # 保存文件
                 filename:str = "default_plot",
                 fig_size:tuple[float, float] = (6,5.5),
                 legend_loc:str = "lower left",
@@ -98,30 +98,38 @@ class PlotSetting(Setting):
 
 class RadarSetting(Setting):
     def __init__(self, 
-                 dpi: int = 300, 
-                 enable_saveimg = False,                        # 保存文件
-                 filename: str = "default_radar", 
-                 fig_size: tuple[float, float] = (6, 5.5), 
-                 legend_loc: str = "lower center", 
-                 legend_fontsize: int = 14, 
-                 legend_bold: bool = False, 
-                 title: str = "title", 
-                 title_fontsize: int = 20,
+                 # base
+                dpi: int = 300, 
+                enable_saveimg = True,                        # 保存文件
+                filename: str = "default_radar", 
+                fig_size: tuple[float, float] = (3, 3), 
+                 # legend
+                legend_loc: str = "lower center",   # 'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'
+                bbox_to_anchor:tuple[float, float] = None,   # 图例的相对位置(x,y)，该项的优先级更高    # type:ignore
+                legend_fontsize: int = 7, 
+                legend_bold: bool = False, 
+                frameon:bool=True,             # 图例背景
+                 # title
+                title: str = "title", 
+                title_fontsize: int = 14,
                 # radar param
-                attr_li=[],                     # 挑战属性列表
-                frameon:bool=False,             # 图例背景
-                enable_ticks:bool=True,         # 刻度显示
+                enable_ticks:bool=False,        # 刻度显示
                 grid_type:str='straight',       # 网格线样式
                 fill_color:bool=True,           # 启用颜色填充
                 fill_alpha:float=0.18,          # 填充颜色的透明度
-                fill_linewidth:float=2.5,       # 填充快边界
-                fill_markersize:int=10,         # 填充边界的标记点大小
-                bbox_to_anchor:tuple=(0.5, 1.0),# 图例的相对位置
-                attr_fontsize:int=14,           # 属性字体大小
-                attr_bold:bool=False,           # 
+                fill_linewidth:float=2.5,       # 填充块边界
+                fill_markersize:int=5,          # 填充边界的标记点半径
+                # attr
+                attr_li=[],                     # 挑战属性列表
+                attr_fontsize:int=7,            # 属性字体大小
+                attr_bold:bool=False,           # 属性字体加粗
+                showMinMaxVal:bool=True,        # 是否在属性标签下展示得分的最小值和最大值
+                distance:float=0.,             # 属性距离坐标的距离
+                # other
                 rlabel_position:int=-140,       # 主轴方向
-                ytick_fontsize=None,            # 刻度字体大小
-                board:tuple=(0.75, 0.02, 0.05, 0.95, 0.37),                 # 调整边距, 上下左右+子图边距
+                ytick_fontsize=6,               # 刻度字体大小
+                board:tuple=(0.8, 0.15, 0.1, 0.9, 0.37),                 # 调整边距, 上下左右+子图边距
+                showAbsVal:bool=False,          # 展示相对值还是绝对值，默认展示相对值
                  ) -> None:
         super().__init__(dpi, enable_saveimg, filename, fig_size, legend_loc, legend_fontsize, legend_bold, title, title_fontsize)
         self.attr_li = attr_li
@@ -138,6 +146,9 @@ class RadarSetting(Setting):
         self.board = board
         self.fill_markersize = fill_markersize
         self.fill_linewidth = fill_linewidth
+        self.showAbsVal = showAbsVal
+        self.showMinMaxVal = showMinMaxVal
+        self.distance = distance
 
 
 PR_Config = {
@@ -193,7 +204,7 @@ def get_PR_Setting():
 
 def get_Radar_Setting():
     radarPlotSetting = RadarSetting()
-    radarPlotSetting.title = ''
+    radarPlotSetting.title = 'Attribute Score'
     radarPlotSetting.legend_loc = "upper center"
     return radarPlotSetting
 
