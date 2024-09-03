@@ -96,6 +96,63 @@ class PlotSetting(Setting):
 
 
 
+class ScorePlotSetting(Setting):
+    def __init__(self, 
+                # global param
+                dpi:int = 300,
+                enable_saveimg = True,                        # 保存文件
+                filename:str = "default_score_plot",
+                fig_size:tuple[float, float] = (6,5),
+                legend_loc: str = "lower center",   # 'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'
+                bbox_to_anchor: Union[tuple[float, float],None] = None,   # 图例的相对位置(x,y)，该项的优先级更高   
+                legend_fontsize:int=14,
+                legend_bold:bool=False,
+                # plot param (pr/sr/npr)
+                max_len:int = 1000,                      # 最大展示长度
+                ylim:tuple[float, float]=(0.0, 1.0),
+                linewidth:int=3,
+                title:str = "title",
+                xlabel:str = "xlabel",
+                ylabel:str = "ylabel",
+                title_fontsize:int=20,
+                xlabel_fontsize:int=20,
+                ylabel_fontsize:int=20,
+                title_bold:bool=True,
+                xlabel_bold:bool=True,
+                ylabel_bold:bool=True,
+                xticks:Any=[],  # x坐标轴刻度
+                yticks:Any=[],
+                xtick_fontsize=None,
+                ytick_fontsize=None,
+                font="TimesNewRoman",
+                alpha=0.2,
+                smooth_strongth = 3,
+                frameon:bool=True,             # 图例背景
+                ) -> None:
+        super().__init__(dpi, enable_saveimg, filename, fig_size, legend_loc, legend_fontsize, legend_bold, 
+                         title, title_fontsize, title_bold)
+        self.max_len = max_len
+        self.xticks = xticks
+        self.yticks = yticks
+        self.frameon = frameon
+        self.xtick_fontsize = xtick_fontsize
+        self.ytick_fontsize = ytick_fontsize
+        self.ylim = ylim
+        self.linewidth = linewidth
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.xlabel_fontsize = xlabel_fontsize
+        self.ylabel_fontsize = ylabel_fontsize
+        self.xlabel_bold = xlabel_bold
+        self.ylabel_bold = ylabel_bold
+        self.font = font
+        self.alpha = alpha
+        self.smooth_strongth = smooth_strongth
+        self.bbox_to_anchor = bbox_to_anchor
+
+
+
+
 class RadarSetting(Setting):
     def __init__(self, 
                  # base
@@ -105,7 +162,7 @@ class RadarSetting(Setting):
                 fig_size: tuple[float, float] = (3, 3), 
                  # legend
                 legend_loc: str = "lower center",   # 'best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'
-                bbox_to_anchor:tuple[float, float] = None,   # 图例的相对位置(x,y)，该项的优先级更高    # type:ignore
+                bbox_to_anchor: Union[tuple[float, float],None] = None,   # 图例的相对位置(x,y)，该项的优先级更高   
                 legend_fontsize: int = 7, 
                 legend_bold: bool = False, 
                 frameon:bool=True,             # 图例背景
