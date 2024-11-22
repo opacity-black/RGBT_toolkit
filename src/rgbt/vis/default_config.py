@@ -46,6 +46,9 @@ class Setting:
                 self.__dict__[k] = v
             else:
                 raise BaseException(f"Unknow attribute \"{k}\".")
+            
+    def __call__(self, **kwds) ->None:
+        self.__dict__.update(kwds)
 
 
 class PlotSetting(Setting):
