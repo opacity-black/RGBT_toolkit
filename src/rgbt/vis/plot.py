@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+Array = np.ndarray
 
 if __name__=="__main__":
     from draw_utils import COLOR, LINE_STYLE
@@ -10,7 +11,26 @@ else:
     from rgbt.vis.font import TimesNewRoman
     from rgbt.vis.default_config import PlotSetting
 
-def plot(result:list[tuple[str, np.ndarray]], setting:PlotSetting):
+
+def plot(result:list[tuple[str, Array]], setting:PlotSetting) -> None:
+    """
+    Given test results and settings, plot PR/SR curves
+
+    Parameter
+    ---
+    result: tracking results from multi trackers.
+
+    Example
+    ---
+    ```
+    data = [
+        ("trackerA", np.array([0.9, 0.8, 0.78, 0.75, 0.6, 0.3, 0.0])),
+        ("trackerB", np.array([0.92, 0.82, 0.78, 0.7, 0.55, 0.28, 0.0])),
+    ]
+    setting = PlotSetting(axis = np.arange(7))
+    plot(data, setting)
+    ```
+    """
     axis = setting.axis
     fig = plt.figure(figsize=setting.fig_size)
     ax = fig.add_subplot(111)
@@ -53,7 +73,6 @@ if __name__=="__main__":
         ("A", np.array([0.9, 0.8, 0.78, 0.75, 0.6, 0.3, 0.0])),
         ("B", np.array([0.92, 0.82, 0.78, 0.7, 0.55, 0.28, 0.0])),
     ]
-    setting = PlotSetting()
-    setting.axis = np.arange(7)
+    setting = PlotSetting(axis=np.arange(7))
     plot(data, setting)
     input()
