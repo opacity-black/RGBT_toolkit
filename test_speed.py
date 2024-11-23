@@ -1,14 +1,18 @@
 from functools import reduce
 import time
 from multiprocessing.pool import Pool, ThreadPool
+import joblib
 import os
+import numpy as np
 
 """
 测试在需要处理返回结果情况下各种循环方式的执行效率
 """
 
 def fun(li):
-    return list(map(lambda x:x+1, li))
+    li = np.array(li)+1
+    return li.tolist()
+    # return list(map(lambda x:x+1, li))
     # for i in range(len(li)):
     #     li[i]+=1
 
@@ -22,35 +26,35 @@ if __name__=="__main__":
     print(f"{count1=}, {count2=}")
     a_li = [[0]*count2 for _ in range(count1)]
 
-    # for 循环
-    st = time.time()
-    for i in range(count1):
-        for j in range(count2):
-            a_li[i][j] += 1
-    print("for-time = ", time.time()-st)
+    # # for 循环
+    # st = time.time()
+    # for i in range(count1):
+    #     for j in range(count2):
+    #         a_li[i][j] += 1
+    # print("for-time = ", time.time()-st)
             
-    # 列表解析
-    st = time.time()
-    a_li = [[a_li[i][j]+1 for j in range(count2)] for i in range(count1)]
-    print("loop-time = ", time.time()-st)
+    # # 列表解析
+    # st = time.time()
+    # a_li = [[a_li[i][j]+1 for j in range(count2)] for i in range(count1)]
+    # print("loop-time = ", time.time()-st)
 
 
-    # map
-    st = time.time()
-    a_li = list(map(lambda x:list(map(lambda y:y+1, x)), a_li))
-    print("map-time = ", time.time()-st)
+    # # map
+    # st = time.time()
+    # a_li = list(map(lambda x:list(map(lambda y:y+1, x)), a_li))
+    # print("map-time = ", time.time()-st)
 
 
-    # 线程池 python并非真正的线程
-    # print(a_li[0][0])
-    # print(os.cpu_count())
-    st = time.time()
-    pool = ThreadPool(processes=None)
-    a_li = pool.map(fun, a_li)
-    pool.close()
-    pool.join()
-    print("tpool.map-time = ", time.time()-st)
-    # print(a_li[0][0])
+    # # 线程池 python并非真正的线程
+    # # print(a_li[0][0])
+    # # print(os.cpu_count())
+    # st = time.time()
+    # pool = ThreadPool(processes=None)
+    # a_li = pool.map(fun, a_li)
+    # pool.close()
+    # pool.join()
+    # print("tpool.map-time = ", time.time()-st)
+    # # print(a_li[0][0])
     
 
     # 进程池
@@ -74,6 +78,15 @@ if __name__=="__main__":
     pool.close()
     pool.join()
     print("blockpool.map-time = ", time.time()-st)
+
+    
+    # joblib
+    # print(a_li[0][0])
+    # print(os.cpu_count())
+    st = time.time()
+    a_li = joblib.Parallel(n_jobs=6)(joblib.delayed(fun)(li) for li in a_li)
+    print("joblib-time = ", time.time()-st)
+    # print(a_li[0][0])
 
 """
 count1=250, count2=10000
