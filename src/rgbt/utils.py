@@ -91,7 +91,7 @@ def bbox_type_trans(bbox_type_src:str, bbox_type_new:str):
     if bbox_type_src!=bbox_type_new:
         return eval(bbox_type_src+'_2_'+bbox_type_new)
     else:
-        return lambda x:x
+        return None
     
 
 
