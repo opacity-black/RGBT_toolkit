@@ -1,4 +1,5 @@
 
+from rgbt.utils import Array
 from .base import Metric
 from rgbt.dataset.basedataset import BaseRGBTDataet, TrackerResult
 import numpy as np
@@ -24,24 +25,18 @@ class MPR(Metric):
         super().__init__()
         self.thr = thr
 
+    def seq_worker(self, gtBoxV_li:list, gtBoxI_li:list, predBox_li:list) -> Array:
+        get_mpr = lambda pred,gt_v,gt_i : min(CLE(pred, gt_v), CLE(pred, gt_i))
+        frame_pr_li = np.array(list(map(get_mpr, predBox_li, gtBoxV_li, gtBoxI_li)))
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-        pr=[]
-        for seq_name in seqs:
-            gt_v = dataset[seq_name]['visible']
-            gt_i = dataset[seq_name]['infrared']
-            serial = result[seq_name]
-            res_v = np.array(serial_process(CLE, serial, gt_v))
-            res_i = np.array(serial_process(CLE, serial, gt_i))
-            res = np.minimum(res_v, res_i)
+        seq_length = len(frame_pr_li)
+        seq_pr_curve = np.array([np.sum(frame_pr_li<=i)/seq_length for i in self.thr])
+        return seq_pr_curve
 
-            pr_cell = []
-            for i in self.thr:
-                pr_cell.append(np.sum(res<=i)/len(res))
-            pr.append(pr_cell)
-        pr = np.array(pr)
-        pr_val = pr.mean(axis=0)[20]
-        return pr_val, pr
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        seq_pr_curve_li = super().process(dataset, result, seqs)
+        pr = seq_pr_curve_li.mean(axis=0)[20]
+        return pr, seq_pr_curve_li
 
 
 
@@ -59,25 +54,18 @@ class MSR(Metric):
         self.thr = thr
 
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-    
-        sr=[]
-        for seq_name in seqs:
-            gt_v = dataset[seq_name]['visible']
-            gt_i = dataset[seq_name]['infrared']
-            serial = result[seq_name]
-            res_v = np.array(serial_process(IoU, serial, gt_v))
-            res_i = np.array(serial_process(IoU, serial, gt_i))
-            res = np.maximum(res_v, res_i)
+    def seq_worker(self, gtBoxV_li:list, gtBoxI_li:list, predBox_li:list) -> Array:
+        get_msr = lambda pred,gt_v,gt_i : max(IoU(pred, gt_v), IoU(pred, gt_i))
+        frame_sr_li = np.array(list(map(get_msr, predBox_li, gtBoxV_li, gtBoxI_li)))
 
-            sr_cell = []
-            for i in self.thr:
-                sr_cell.append(np.sum(res>i)/len(res))
-            sr.append(sr_cell)
+        seq_length = len(frame_sr_li)
+        seq_sr_curve = np.array([np.sum(frame_sr_li>i)/seq_length for i in self.thr])
+        return seq_sr_curve
 
-        sr = np.array(sr)
-        sr_val = sr.mean()
-        return sr_val, sr
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        seq_sr_curve_li = super().process(dataset, result, seqs)
+        sr = seq_sr_curve_li.mean()
+        return sr, seq_sr_curve_li
 
 
 
@@ -99,27 +87,17 @@ class MPR_GTOT(Metric):
         super().__init__()
         self.thr = thr
 
+    def seq_worker(self, gtBoxV_li:list, gtBoxI_li:list, predBox_li:list) -> Array:
+        get_mpr = lambda pred,gt_v,gt_i : min(CLE(pred, gt_v), CLE(pred, gt_i))
+        frame_pr_li = np.array(list(map(get_mpr, predBox_li, gtBoxV_li, gtBoxI_li)))
+        seq_pr_curve = np.array([np.sum(frame_pr_li<=i) for i in self.thr])
+        return seq_pr_curve
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-        pr=[]
-        all_frame_num = 0
-        for seq_name in seqs:
-            gt_v = dataset[seq_name]['visible']
-            gt_i = dataset[seq_name]['infrared']
-            serial = result[seq_name]
-            res_v = np.array(serial_process(CLE, serial, gt_v))
-            res_i = np.array(serial_process(CLE, serial, gt_i))
-            res = np.minimum(res_v, res_i)
-
-            pr_cell = []
-            all_frame_num+=len(res)
-            for i in self.thr:
-                pr_cell.append(np.sum(res<i))
-            pr.append(pr_cell)
-
-        pr = np.array(pr)
-        pr_val = pr[:, 10].sum()/all_frame_num
-        return pr_val, pr/all_frame_num*pr.shape[0]
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        all_frame_num = sum([len(dataset[seq]['visible']) for seq in seqs])
+        seq_pr_curve_li = super().process(dataset, result, seqs)
+        pr = seq_pr_curve_li[:, 10].sum()/all_frame_num
+        return pr, seq_pr_curve_li/all_frame_num*seq_pr_curve_li.shape[0]
 
 
 
@@ -136,32 +114,22 @@ class MSR_GTOT(Metric):
         super().__init__()
         self.thr = thr
 
+    def seq_worker(self, gtBoxV_li:list, gtBoxI_li:list, predBox_li:list) -> Array:
+        get_msr = lambda pred,gt_v,gt_i : max(IoU(pred, gt_v), IoU(pred, gt_i))
+        frame_sr_li = np.array(list(map(get_msr, predBox_li, gtBoxV_li, gtBoxI_li)))
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-    
-        sr=[]
-        all_frame_num=0
-        for seq_name in seqs:
-            gt_v = dataset[seq_name]['visible']
-            gt_i = dataset[seq_name]['infrared']
-            serial = result[seq_name]
-            res_v = np.array(serial_process(IoU, serial, gt_v))
-            res_i = np.array(serial_process(IoU, serial, gt_i))
-            res = np.maximum(res_v, res_i)
+        seq_sr_curve = np.array([np.sum(frame_sr_li>i) for i in self.thr])
+        return seq_sr_curve
 
-            sr_cell = []
-            all_frame_num+=len(res)
-            for i in self.thr:
-                sr_cell.append(np.sum(res>i))
-            sr.append(sr_cell)
 
-        sr = np.array(sr)
-        sr_val = 0
-        a = (sr[:, 1:]*self.thr[1]).sum()   # calc auc
-        b = (sr[:, :-1]*self.thr[1]).sum()
-        sr_val += (a+b)/2.
-        sr_val = sr_val/all_frame_num
-        return sr_val, sr/all_frame_num*sr.shape[0]
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        all_frame_num = sum([len(dataset[seq]['visible']) for seq in seqs])
+        seq_sr_curve_li = super().process(dataset, result, seqs)
+        
+        a = (seq_sr_curve_li[:, 1:]*self.thr[1]).sum()   # calc auc
+        b = (seq_sr_curve_li[:, :-1]*self.thr[1]).sum()
+        sr_val = (a+b)/2./all_frame_num
+        return sr_val, seq_sr_curve_li/all_frame_num*seq_sr_curve_li.shape[0]
 
 
 
@@ -173,28 +141,18 @@ class PR(Metric):
         super().__init__()
         self.thr = thr
 
+    def seq_worker(self, predBox_li, gtBoxV_li) -> Array:
+        predBox_li[0] = gtBoxV_li[0]
+        frame_pr_li = np.array(list(map(CLE, predBox_li, gtBoxV_li)))
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-        pr=[]
-        for seq_name in seqs:
-            try:
-                gt = dataset[seq_name]
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            except:
-                gt = dataset[seq_name]['visible']
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            res = np.array(serial_process(CLE, serial, gt))
+        seq_length = len(frame_pr_li)
+        seq_pr_curve = np.array([np.sum(frame_pr_li<=i)/seq_length for i in self.thr])
+        return seq_pr_curve
 
-            pr_cell = []
-            for i in self.thr:
-                pr_cell.append(np.sum(res<=i)/len(res))
-            pr.append(pr_cell)
-            
-        pr = np.array(pr)
-        pr_val = pr.mean(axis=0)[20]
-        return pr_val, pr
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        seq_pr_curve_li = super().process(dataset, result, seqs, mm='visible' in dataset[0])
+        pr = seq_pr_curve_li.mean(axis=0)[20]
+        return pr, seq_pr_curve_li
 
 
 
@@ -209,72 +167,53 @@ class SR(Metric):
         self.thr = thr
 
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-    
-        sr=[]
-        for seq_name in seqs:
-            try:
-                gt = dataset[seq_name]
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            except:
-                gt = dataset[seq_name]['visible']
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            res = np.array(serial_process(IoU, serial, gt))
+    def seq_worker(self, predBox_li, gtBoxV_li) -> Array:
+        predBox_li[0] = gtBoxV_li[0]
+        frame_sr_li = np.array(list(map(IoU, predBox_li, gtBoxV_li)))
 
-            sr_cell = []
-            for i in self.thr:
-                sr_cell.append(np.sum(res>i)/len(res))
-            sr.append(sr_cell)
+        seq_length = len(frame_sr_li)
+        seq_sr_curve = np.array([np.sum(frame_sr_li>i)/seq_length for i in self.thr])
+        return seq_sr_curve
 
-        sr = np.array(sr)
-        sr_val = sr.mean()
-        return sr_val, sr
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        seq_sr_curve_li = super().process(dataset, result, seqs, mm='visible' in dataset[0])
+        sr = seq_sr_curve_li.mean()
+        return sr, seq_sr_curve_li
 
 
 class SR_LasHeR(Metric):
     """
-    Success Rate.
-    Different other dataset, LasHeR testingset need to filter some results.
+    Success Rate for LasHeR.
     """
     def __init__(self, thr=np.linspace(0, 1, 21)) -> None:
         super().__init__()
         self.thr = thr
 
+    def seq_worker(self, predBox_li, gtBoxV_li) -> Array:
+        assert len(predBox_li)>=len(gtBoxV_li)
+        seq_length = len(gtBoxV_li)
+        # ignore the first frame
+        predBox_li[0] = gtBoxV_li[0]
+        # cut off tracking result
+        predBox_li = predBox_li[:seq_length]
+        # handle the invailded tracking result
+        for i in range(1, seq_length):
+            if predBox_li[i][2]<=0 or predBox_li[i][3]<=0:
+                predBox_li[i] = predBox_li[i-1].copy()
+        frame_sr_li = np.array(list(map(IoU, predBox_li, gtBoxV_li)))
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-    
-        sr=[]
-        for seq_name in seqs:
-            try:
-                gt = dataset[seq_name]
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            except:
-                gt = dataset[seq_name]['visible']
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            # cut off tracking result
-            serial = serial[:len(gt)]   
-            # handle the invailded tracking result
-            for i in range(1, len(gt)):
-                if serial[i][2]<=0 or serial[i][3]<=0:
-                    serial[i] = serial[i-1].copy()
-            res = np.array(serial_process(IoU, serial, gt))
+        for i in range(seq_length):
+            if sum(gtBoxV_li[i]<=0):
+                frame_sr_li[i]=-1
 
-            for i in range(len(gt)):
-                if sum(gt[i]<=0):
-                    res[i]=-1
+        seq_sr_curve = np.array([np.sum(frame_sr_li>i)/seq_length for i in self.thr])
+        return seq_sr_curve
 
-            sr_cell = []
-            for i in self.thr:
-                sr_cell.append(np.sum(res>i)/len(res))
-            sr.append(sr_cell)
 
-        sr = np.array(sr)
-        sr_val = sr.mean()
-        return sr_val, sr
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        seq_sr_curve_li = super().process(dataset, result, seqs, mm='visible' in dataset[0])
+        sr = seq_sr_curve_li.mean()
+        return sr, seq_sr_curve_li
     
 
 class PR_LasHeR(Metric):
@@ -286,38 +225,31 @@ class PR_LasHeR(Metric):
         super().__init__()
         self.thr = thr
 
+    def seq_worker(self, predBox_li, gtBoxV_li) -> Array:
+        assert len(predBox_li)>=len(gtBoxV_li)
+        seq_length = len(gtBoxV_li)
+        # ignore the first frame
+        predBox_li[0] = gtBoxV_li[0]
+        # cut off tracking result
+        predBox_li = predBox_li[:seq_length]
+        # handle the invailded tracking result
+        for i in range(1, seq_length):
+            if predBox_li[i][2]<=0 or predBox_li[i][3]<=0:
+                predBox_li[i] = predBox_li[i-1].copy()
+        frame_pr_li = np.array(list(map(CLE, predBox_li, gtBoxV_li)))
 
-    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-        pr=[]
-        for seq_name in seqs:
-            try:
-                gt = dataset[seq_name]
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            except:
-                gt = dataset[seq_name]['visible']
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            # cut off tracking result
-            serial = serial[:len(gt)]   
-            # handle the invailded tracking result
-            for i in range(1, len(gt)):
-                if serial[i][2]<=0 or serial[i][3]<=0:
-                    serial[i] = serial[i-1].copy()
-            res = np.array(serial_process(CLE, serial, gt))
+        for i in range(seq_length):
+            if sum(gtBoxV_li[i]<=0):
+                frame_pr_li[i]=-1
 
-            for i in range(len(gt)):
-                if sum(gt[i]<=0):
-                    res[i]=-1
+        seq_pr_curve = np.array([np.sum(frame_pr_li<=i)/seq_length for i in self.thr])
+        return seq_pr_curve
 
-            pr_cell = []
-            for i in self.thr:
-                pr_cell.append(np.sum(res<=i)/len(res))
-            pr.append(pr_cell)
-            
-        pr = np.array(pr)
-        pr_val = pr.mean(axis=0)[20]
-        return pr_val, pr
+
+    def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list) -> tuple[float, Array]:
+        seq_pr_curve_li = super().process(dataset, result, seqs, mm='visible' in dataset[0])
+        pr = seq_pr_curve_li.mean(axis=0)[20]
+        return pr, seq_pr_curve_li
 
 
 class NPR(Metric):
@@ -328,35 +260,29 @@ class NPR(Metric):
         super().__init__()
         self.thr = thr
 
+    def seq_worker(self, predBox_li, gtBoxV_li) -> Array:
+        assert len(predBox_li)>=len(gtBoxV_li)
+        seq_length = len(gtBoxV_li)
+        # ignore the first frame
+        predBox_li[0] = gtBoxV_li[0]
+        # cut off tracking result
+        predBox_li = predBox_li[:seq_length]
+        # handle the invailded tracking result
+        for i in range(1, seq_length):
+            if predBox_li[i][2]<=0 or predBox_li[i][3]<=0:
+                predBox_li[i] = predBox_li[i-1].copy()
+        frame_npr_li = np.array(list(map(normalize_CLE, predBox_li, gtBoxV_li)))
+
+        for i in range(seq_length):
+            if sum(gtBoxV_li[i]<=0):
+                frame_npr_li[i]=-1
+
+        seq_npr_curve = np.array([np.sum(frame_npr_li<=i)/seq_length for i in self.thr])
+        return seq_npr_curve
+
 
     def __call__(self, dataset:BaseRGBTDataet, result:TrackerResult, seqs:list):
-        pr=[]
-        for seq_name in seqs:
-            try:
-                gt = dataset[seq_name]
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            except:
-                gt = dataset[seq_name]['visible']
-                serial = result[seq_name]
-                serial[0] = gt[0]       # ignore the first frame
-            # cut off tracking result
-            serial = serial[:len(gt)]   
-            # handle the invailded tracking result
-            for i in range(1, len(gt)):
-                if serial[i][2]<=0 or serial[i][3]<=0:
-                    serial[i] = serial[i-1].copy()
-            res = np.array(serial_process(normalize_CLE, serial, gt))
-
-            for i in range(len(gt)):
-                if sum(gt[i]<=0):
-                    res[i]=-1
-
-            pr_cell = []
-            for i in self.thr:
-                pr_cell.append(np.sum(res<=i)/len(res))
-            pr.append(pr_cell)
-        pr = np.array(pr)
-        pr_val = pr.mean(axis=0)[20]
-        return pr_val, pr
+        seq_npr_curve_li = super().process(dataset, result, seqs, mm='visible' in dataset[0])
+        npr = seq_npr_curve_li.mean(axis=0)[20]
+        return npr, seq_npr_curve_li
 
