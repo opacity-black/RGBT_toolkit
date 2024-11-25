@@ -1,26 +1,47 @@
+[![PyPI 版本](https://badge.fury.io/py/rgbt.svg)](https://badge.fury.io/py/rgbt) [![下载量](https://static.pepy.tech/badge/rgbt)](https://pepy.tech/project/rgbt)
+
+# 更新日志
+
+## 2.0
+
+美化了PR/SR图以及雷达图的显示效果
+计算效率提升一倍以上
+
 
 # RGBT toolkit for GTOT, RGBT210, RGBT234, LasHeR
 
 This project was created for the convenience of RGBT Tracking researchers. By utilizing this tool, you will be able to easily implement the following features:
 
-- Use the same tool to evaluate your tracking results on different RGBT datasets.
-- The test results of each attribute are available and a radar chart is obtained. You can also test an attribute individually.
-- Precision plot and other plot are available.
-- Supports GTOT, RGBT210, RGBT234, LasHeR datasets.
+- One for Four
+  
+Use the same tool to evaluate your tracking results on different RGBT datasets.
 
-> 经测试，由于计算精度的差异，部分情况下会与原始工具箱产生`0.1%`的误差。**所有数据集都经过论文中给定结果的校准。** <br>
+- Easy and Fast
+
+We offered all groundtruth file, so you can use it directly.
+
+- Support multiple evaluation needs
+
+The test results of each attribute are available.<br>
+You can also analyze individual sequences one by one.<br>
+Draw a beautiful image for your paper.
+
+# Is the result reliable ?
+
+> 经测试，由于计算精度的差异，少部分情况下会与官方发布的工具箱产生`0.1%`的误差。**所有数据集都经过论文中给定结果的校准。** <br>
+> (校准使用了以下跟踪器提供的文件和结果：APFNet、TFNet、JMMAC、mfDiMP、SOWP、DAFNet) <br>
 > It was tested to produce `0.1%` error from the original toolbox in some cases due to differences in computational accuracy. **All datasets are calibrated for the given results in the paper.**
 
 
-## Install
+## How to install?
 
-```
-pip install rgbt
+```cmd
+pip install rgbt==2.0
 ```
 
 ## Evaluate and Visualize
 
-We provide the ground truth file, so you can directly call it.
+We provide the ground truth file, so you can directly use it. You just need give it the tracking result path.
 
 ```python
 from rgbt import RGBT234
